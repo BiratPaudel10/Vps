@@ -10,21 +10,24 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install tmate
+      - name: Start SSHX VPS and capture link
+        id: start_vps
         run: |
-          sudo apt update
-          sudo apt install -y tmate
+          curl -sSf https://sshx.io/get | sh -s run > output.txt
+          cat output.txt
+          LINK=$(grep -o 'https://sshx.io/[a-zA-Z0-9]*' output.txt | head -n 1)
+          echo "SSHX_LINK=$LINK" >> $GITHUB_ENV
 
-      - name: Start tmate session
+      - name: Send link to Discord
+        env:
+          DISCORD_WEBHOOK: https://discord.com/api/webhooks/1378917239230562384/a4_I2lC5-Cv5qRFQf8VjiWqKqtHEN1gPWc4-NAfOXcPrD2KTqDGQtattjMvwhoDJj0ui
         run: |
-          tmate -S /tmp/tmate.sock new-session -d
-          tmate -S /tmp/tmate.sock wait tmate-ready
-          tmate -S /tmp/tmate.sock display -p 'SSH connection: {{%s}}' "$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}')"
-          tmate -S /tmp/tmate.sock display -p 'Web interface: {{%s}}' "$(tmate -S /tmp/tmate.sock display -p '#{tmate_web}')"
-
-      - name: Wait for you to connect
-        run: sleep 3600  # Keep session open for 1 hour
+          curl -H "Content-Type: application/json" \
+            -X POST \
+            -d "{\"content\": \"✅ Your VPS is ready: $SSHX_LINK\"}" \
+            $DISCORD_WEBHOOK
