@@ -1,31 +1,26 @@
 name: vps
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Start SSHX VPS and capture link
         id: start_vps
         run: |
-          curl -sSf https://sshx.io/get | sh -s run > output.txt
-          cat output.txt
+          curl -sSf https://sshx.io/get | sh -s run | tee output.txt
           LINK=$(grep -o 'https://sshx.io/[a-zA-Z0-9]*' output.txt | head -n 1)
           echo "SSHX_LINK=$LINK" >> $GITHUB_ENV
 
-      - name: Send link to Discord
+      - name: Send VPS link to Discord
         env:
           DISCORD_WEBHOOK: https://discord.com/api/webhooks/1378917239230562384/a4_I2lC5-Cv5qRFQf8VjiWqKqtHEN1gPWc4-NAfOXcPrD2KTqDGQtattjMvwhoDJj0ui
+          SSHX_LINK: ${{ env.SSHX_LINK }}
         run: |
           curl -H "Content-Type: application/json" \
             -X POST \
