@@ -1,31 +1,19 @@
 name: vps
 
 on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Start SSHX VPS and save link
-        id: sshx
+      - name: Run VPS with SSHX
         run: |
-          echo "🔧 Starting SSHX session..."
-          curl -sSf https://sshx.io/get | sh -s run | tee output.txt
-          LINK=$(grep -o 'https://sshx.io/[a-zA-Z0-9]*' output.txt | head -n 1)
-          echo "🔗 SSHX_LINK=$LINK"
-          echo "sshx_link=$LINK" >> $GITHUB_OUTPUT
-
-      - name: Send SSH link to Discord
-        env:
-          DISCORD_WEBHOOK: https://discord.com/api/webhooks/1378917239230562384/a4_I2lC5-Cv5qRFQf8VjiWqKqtHEN1gPWc4-NAfOXcPrD2KTqDGQtattjMvwhoDJj0ui
-        run: |
-          echo "📡 Sending link to Discord..."
-          curl -H "Content-Type: application/json" \
-            -X POST \
-            -d "{\"content\": \"✅ Your SSH VPS is ready: ${{ steps.sshx.outputs.sshx_link }}\"}" \
-            $DISCORD_WEBHOOK
+          curl -sSf https://sshx.io/get | sh -s run
