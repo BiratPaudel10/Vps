@@ -1,0 +1,13 @@
+name: BiraloVPS
+
+on: repository_dispatch
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Tmate
+        run: |
+          sudo apt update
+          sudo apt install -y tmate openssh-client
+          tmate -F | tee session.txt
